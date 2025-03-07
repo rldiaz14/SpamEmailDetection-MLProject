@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import re
 import string
+import math
 from collections import Counter
 
 def load_data(file_path):
@@ -32,6 +33,29 @@ def clean_text(text):
     
     return text
 
+def compute_tf(text_tokens):
+    """Compute Term Frequency for a document."""
+    word_counts = Counter(text_tokens)
+    total_words = len(text_tokens)
+    return {word: count / total_words for word, count in word_counts.items()}
+
+def compute_idf(texts):
+    """Compute Inverse Document Frequency across all documents."""
+    doc_count = len(texts)
+    word_doc_count = Counter()
+    
+    for text in texts:
+        words = set(text.split())  # Use set to count unique words per document
+        word_doc_count.update(words)
+    
+    return {word: math.log(doc_count / (1 + count)) for word, count in word_doc_count.items()}
+
+def compute_tf_idf(text, idf_values):
+    """Compute TF-IDF scores for a document."""
+    tokens = text.split()
+    tf = compute_tf(tokens)
+    return {word: tf[word] * idf_values.get(word, 0) for word in tf}
+
 def create_vocabulary(texts, min_freq=2, max_freq_ratio=0.95):
     """Create vocabulary from texts with frequency filtering."""
     # Count all words
@@ -53,12 +77,14 @@ def create_vocabulary(texts, min_freq=2, max_freq_ratio=0.95):
     
     return vocabulary
 
-def text_to_bow(text, vocabulary):
-    """Convert text to bag-of-words representation."""
+def text_to_tfidf_vector(text, vocabulary, idf_values):
+    """Convert text to TF-IDF vector representation."""
     vector = np.zeros(len(vocabulary))
-    for word in text.split():
+    tf_idf_scores = compute_tf_idf(text, idf_values)
+    
+    for word, score in tf_idf_scores.items():
         if word in vocabulary:
-            vector[vocabulary[word]] += 1
+            vector[vocabulary[word]] = score
     return vector
 
 def normalize_features(X):
@@ -102,9 +128,14 @@ def preprocess_data(file_path, test_size=0.2, random_state=42):
     print("Creating vocabulary...")
     vocabulary = create_vocabulary(df['cleaned_text'])
     
-    # Convert texts to bag-of-words
-    print("Converting texts to numerical features...")
-    X = np.array([text_to_bow(text, vocabulary) for text in df['cleaned_text']])
+    # Compute IDF values
+    print("Computing IDF values...")
+    idf_values = compute_idf(df['cleaned_text'])
+    
+    # Convert texts to TF-IDF
+    print("Converting texts to TF-IDF features...")
+    X = np.array([text_to_tfidf_vector(text, vocabulary, idf_values) 
+                  for text in df['cleaned_text']])
     y = df['spam'].values
     
     # Split data
@@ -125,6 +156,7 @@ def preprocess_data(file_path, test_size=0.2, random_state=42):
         'y_train': y_train,
         'y_test': y_test,
         'vocabulary': vocabulary,
+        'idf_values': idf_values,
         'feature_mean': mean,
         'feature_std': std
     }
