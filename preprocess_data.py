@@ -3,6 +3,7 @@ import pandas as pd
 import re
 import string
 import math
+import os
 from collections import Counter
 
 def load_data(file_path):
@@ -135,7 +136,7 @@ def preprocess_data(file_path, test_size=0.2, random_state=42):
     # Convert texts to TF-IDF
     print("Converting texts to TF-IDF features...")
     X = np.array([text_to_tfidf_vector(text, vocabulary, idf_values) 
-                  for text in df['cleaned_text']])
+                for text in df['cleaned_text']])
     y = df['spam'].values
     
     # Split data
@@ -170,5 +171,9 @@ def preprocess_data(file_path, test_size=0.2, random_state=42):
     return preprocessed_data
 
 if __name__ == "__main__":
-    file_path = "emails.csv/emails.csv"
-    preprocessed_data = preprocess_data(file_path) 
+    file_name = "emails.csv"
+    working_dir = os.path.dirname(os.path.realpath(__file__))
+    data_dir = os.path.join(working_dir, file_name)
+    file_path = os.path.join(data_dir, file_name)
+    preprocessed_data = preprocess_data(file_path)
+    
