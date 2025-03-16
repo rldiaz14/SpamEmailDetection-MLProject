@@ -6,7 +6,7 @@ import time
 
 from preprocess_data import preprocess_data
 
-def train_svm(X_train, y_train, max_iter=100000, C=1.0, verbose=False):
+def train_svm(X_train, y_train, max_iter=10000, C=1.0, verbose=False):
 
     # Create and train SVM model
     start_time = time.time()
