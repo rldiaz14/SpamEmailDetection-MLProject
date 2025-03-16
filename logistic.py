@@ -68,37 +68,37 @@ def evaluate_model(y_true, y_pred):
         'recall': recall,
         'f1_score': f1
     }
+if __name__ == "__main__":
+    # Load and preprocess the data
+    file_path = "emails.csv/emails.csv"
+    preprocessed_data = preprocess_data.preprocess_data(file_path)
 
-# Load and preprocess the data
-file_path = "emails.csv/emails.csv"
-preprocessed_data = preprocess_data.preprocess_data(file_path)
+    # Extract training and testing data
+    X_train = preprocessed_data['X_train']
+    X_test = preprocessed_data['X_test']
+    y_train = preprocessed_data['y_train']
+    y_test = preprocessed_data['y_test']
 
-# Extract training and testing data
-X_train = preprocessed_data['X_train']
-X_test = preprocessed_data['X_test']
-y_train = preprocessed_data['y_train']
-y_test = preprocessed_data['y_test']
+    # Initialize and train the model
+    print("\nTraining logistic regression model...")
+    model = LogisticRegression(learning_rate=0.1, max_iterations=1000)
+    model.fit(X_train, y_train)
 
-# Initialize and train the model
-print("\nTraining logistic regression model...")
-model = LogisticRegression(learning_rate=0.1, max_iterations=1000)
-model.fit(X_train, y_train)
+    # Make predictions
+    print("\nMaking predictions...")
+    y_train_pred = model.predict(X_train)
+    y_test_pred = model.predict(X_test)
+    y_train_prob = model.predict_prob(X_train)
 
-# Make predictions
-print("\nMaking predictions...")
-y_train_pred = model.predict(X_train)
-y_test_pred = model.predict(X_test)
-y_train_prob = model.predict_prob(X_train)
+    # Evaluate the model
+    print("\nEvaluating model performance...")
+    train_metrics = evaluate_model(y_train, y_train_pred)
+    test_metrics = evaluate_model(y_test, y_test_pred)
 
-# Evaluate the model
-print("\nEvaluating model performance...")
-train_metrics = evaluate_model(y_train, y_train_pred)
-test_metrics = evaluate_model(y_test, y_test_pred)
+    print("\nTraining Set Metrics:")
+    for metric, value in train_metrics.items():
+        print(f"{metric.capitalize()}: {value:.4f}")
 
-print("\nTraining Set Metrics:")
-for metric, value in train_metrics.items():
-    print(f"{metric.capitalize()}: {value:.4f}")
-
-print("\nTest Set Metrics:")
-for metric, value in test_metrics.items():
-    print(f"{metric.capitalize()}: {value:.4f}")
+    print("\nTest Set Metrics:")
+    for metric, value in test_metrics.items():
+        print(f"{metric.capitalize()}: {value:.4f}")
